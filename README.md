@@ -16,7 +16,7 @@ and then simply build the code with
 ```bash
 make            
 ```
-which will produce a "C99Gonio.clap" binary. You could install this binary manually or let make copy it for you into ~/.clap/C99Gonio.clap via 
+which will produce a ‘C99Gonio.clap’ binary. You could install this binary manually or let make copy it for you into ‘~/.clap/C99Gonio.clap’ via 
 ```bash
 make install
 ```
