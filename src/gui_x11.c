@@ -535,7 +535,7 @@ static bool go_gui_can_resize(const clap_plugin_t *p) {
        Returns:
          <bool> - always true */
     (void)p;
-    return true;
+    return false;
 }
 
 static bool go_gui_get_resize_hints(const clap_plugin_t *p,
