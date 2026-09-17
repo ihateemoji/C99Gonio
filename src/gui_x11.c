@@ -265,11 +265,11 @@ static void go_gui_paint(go_plug_t *plug) {
         if (frame_peak > plug->auto_peak)
             /* if signal got louder we blend 50/50 towards new peak */
             /* TODO: This should be moved to .h file! */
-            plug->auto_peak = plug->auto_peak * 0.5f + frame_peak * 0.5f;
+            plug->auto_peak = plug->auto_peak * 0.3f + frame_peak * 0.7f;
         else
             /* if a signal got quieter we move slowly towards new peak */
             /* TODO: This should be moved to .h file! */
-            plug->auto_peak = plug->auto_peak * 0.97f + frame_peak * 0.03f;
+            plug->auto_peak = plug->auto_peak * 0.8f + frame_peak * 0.2f;
         /* floor to avoid division by zero */
         if (plug->auto_peak < 1e-4f)
             plug->auto_peak = 1e-4f;
