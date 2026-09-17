@@ -160,23 +160,21 @@ static void go_gui_paint(go_plug_t *plug) {
     int W = plug->gui_w;
     int H = plug->gui_h;
     /* define the list of colours */
-    /* TODO: This should be moved to .h file! */
-    unsigned long bg     = go_col(18, 20, 24);
-    unsigned long grid   = go_col(40, 44, 52);
-    unsigned long axis   = go_col(70, 78, 92);
-    unsigned long fg     = go_col(230, 234, 240);
-    unsigned long mut    = go_col(100, 108, 120);
-    unsigned long cyan   = go_col(70, 200, 220);
-    unsigned long green  = go_col(90, 210, 140);
-    unsigned long yellow = go_col(220, 190, 70);
-    unsigned long red    = go_col(220, 90, 90);
+    unsigned long bg     = go_col(GO_BG_R, GO_BG_G, GO_BG_B);
+    unsigned long grid   = go_col(GO_GRID_R, GO_GRID_G, GO_GRID_B);
+    unsigned long axis   = go_col(GO_AXIS_R, GO_AXIS_G, GO_AXIS_B);
+    unsigned long fg     = go_col(GO_FG_R, GO_FG_G, GO_FG_B);
+    unsigned long mut    = go_col(GO_MUT_R, GO_MUT_G, GO_MUT_B);
+    unsigned long cyan   = go_col(GO_CYA_R, GO_CYA_G, GO_CYA_B);
+    unsigned long green  = go_col(GO_GRN_R, GO_GRN_G, GO_GRN_B);
+    unsigned long yellow = go_col(GO_YEL_R, GO_YEL_G, GO_YEL_B);
+    unsigned long red    = go_col(GO_RED_R, GO_RED_G, GO_RED_B);
     /* fill the background colour */
     go_fill(plug, 0, 0, W, H, bg);
     /* drop a little title (if anyone cares) */
     go_text(plug, 12, 18, "C99Gonio", fg);
     /* add a top offset for the title */
-    /* TODO: This should be moved to .h file! */
-    int top = 26;
+    int top = GO_TOP;
     /* add a bottom offset for the meters */
     int meter_h = GO_METER_H;
     /* in case bottom offset is above a third, we shrink it */
@@ -186,8 +184,7 @@ static void go_gui_paint(go_plug_t *plug) {
     /* we can only make the scope so small, so take care of that */
     if (avail_h < 80) avail_h = 80;
     /* add a small margin */
-    /* TODO: This should be moved to .h file! */
-    int margin = 16;
+    int margin = GO_MARGIN;
     /* we can now work out the size of the scope */
     int scope_size = W - 2 * margin;
     /* again, the scope can only be so small/large so take care of that */
@@ -218,9 +215,8 @@ static void go_gui_paint(go_plug_t *plug) {
     go_text(plug, cx + 4, sy + 14, "M+", mut);
     go_text(plug, cx + 4, sy + scope_size - 6, "M-", mut);
     /* constants for smoothing and Mid/Side projection */
-    /* TODO: This should be moved to .h file! */
-    const float inv_sqrt2 = 0.70710678f;
-    const float smooth = 0.22f;
+    const float inv_sqrt2 = GO_INV_SQRT2;
+    const float smooth = GO_SMOOTH;
     /* get the number of life samples loaded by the plug in */
     uint32_t nsrc = plug->scope_count;
     /* ensure we do not load more samples than provided upper limit */
@@ -263,19 +259,18 @@ static void go_gui_paint(go_plug_t *plug) {
         plug->disp_count = nd;
         /* Fit the box: peak maps to ~92% of radius */
         if (frame_peak > plug->auto_peak)
-            /* if signal got louder we blend 50/50 towards new peak */
-            /* TODO: This should be moved to .h file! */
-            plug->auto_peak = plug->auto_peak * 0.3f + frame_peak * 0.7f;
+            /* if signal got louder we blend towards new peak */
+            plug->auto_peak = plug->auto_peak * GO_PEAK_UP_A +
+                              frame_peak     * GO_PEAK_UP_B;
         else
             /* if a signal got quieter we move slowly towards new peak */
-            /* TODO: This should be moved to .h file! */
-            plug->auto_peak = plug->auto_peak * 0.8f + frame_peak * 0.2f;
+            plug->auto_peak = plug->auto_peak * GO_PEAK_DN_A +
+                              frame_peak     * GO_PEAK_DN_B;
         /* floor to avoid division by zero */
         if (plug->auto_peak < 1e-4f)
             plug->auto_peak = 1e-4f;
         /* set the scale for auto-scaling */
-        /* TODO: This should be moved to .h file! */
-        float inv_scale = 0.92f / plug->auto_peak;
+        float inv_scale = GO_INV_SCALE / plug->auto_peak;
         /* registers for the previous pixel */
         int prev_x = -1, prev_y = -1;
         /* walk through every point and draw a line between */
@@ -284,16 +279,15 @@ static void go_gui_paint(go_plug_t *plug) {
             float sxv = plug->disp_s[i] * inv_scale;
             float syv = plug->disp_m[i] * inv_scale;
             /* sudden loud sample can overshoot, so we clamp */
-            /* TODO: Clamping parameters should be moved to .h file! */
-            if (sxv > 1.05f) {
-                sxv = 1.05f;
-            } else if (sxv < -1.05f) {
-                sxv = -1.05f;
+            if (sxv > GO_CLAMP) {
+                sxv = GO_CLAMP;
+            } else if (sxv < -GO_CLAMP) {
+                sxv = -GO_CLAMP;
             }
-            if (syv > 1.05f) {
-                syv = 1.05f; 
-            } else if (syv < -1.05f) {
-                syv = -1.05f;
+            if (syv > GO_CLAMP) {
+                syv = GO_CLAMP; 
+            } else if (syv < -GO_CLAMP) {
+                syv = -GO_CLAMP;
             }
             /* get the coordinates of each pixel */
             int px = cx + (int)(sxv * rad);
@@ -316,8 +310,7 @@ static void go_gui_paint(go_plug_t *plug) {
         bar_w = 40;
     }
     /* set the thickness of the bar */
-    /* TODO: This should be moved to a .h file! */
-    int bar_h = 12;
+    int bar_h = GO_BAR_H;
     /* work out the centre of the bar */
     int mid = bar_w / 2;
     /* add buffer for the string labels */

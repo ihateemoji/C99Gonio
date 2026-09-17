@@ -61,6 +61,51 @@
 #define GO_GUI_W        480          /* default window width               */
 #define GO_GUI_H        560          /* default window height (scope+meters)*/
 
+/* ---- GUI drawing constants -------------------------------------------- */
+
+#define GO_TOP          26           /* title bar height / top margin      */
+#define GO_MARGIN       16           /* scope outer margin                 */
+#define GO_BAR_H        12           /* meter bar thickness                */
+#define GO_CLAMP        1.05f        /* max overshoot before clamping      */
+#define GO_INV_SCALE    0.92f        /* peak maps to this fraction of rad  */
+#define GO_SMOOTH       0.22f        /* display trail smoothing factor     */
+#define GO_INV_SQRT2    0.70710678f  /* 1/sqrt(2) for Mid/Side projection  */
+
+/* auto-scale peak smoothing (blend factors) */
+#define GO_PEAK_UP_A    0.3f
+#define GO_PEAK_UP_B    0.7f
+#define GO_PEAK_DN_A    0.8f
+#define GO_PEAK_DN_B    0.2f
+
+/* colour helpers (RGB 0..255) — values computed via go_col() in .c */
+#define GO_BG_R   18
+#define GO_BG_G   20
+#define GO_BG_B   24
+#define GO_GRID_R 40
+#define GO_GRID_G 44
+#define GO_GRID_B 52
+#define GO_AXIS_R 70
+#define GO_AXIS_G 78
+#define GO_AXIS_B 92
+#define GO_FG_R   230
+#define GO_FG_G   234
+#define GO_FG_B   240
+#define GO_MUT_R  100
+#define GO_MUT_G  108
+#define GO_MUT_B  120
+#define GO_CYA_R  70
+#define GO_CYA_G  200
+#define GO_CYA_B  220
+#define GO_GRN_R  90
+#define GO_GRN_G  210
+#define GO_GRN_B  140
+#define GO_YEL_R  220
+#define GO_YEL_G  190
+#define GO_YEL_B  70
+#define GO_RED_R  220
+#define GO_RED_G  90
+#define GO_RED_B  90
+
 /* ---- persistent state (saved/restored via CLAP state extension) -------- */
 
 typedef struct {
