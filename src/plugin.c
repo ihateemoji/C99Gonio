@@ -303,7 +303,6 @@ static clap_process_status go_process(const clap_plugin_t *plugin,
     float peak_l = 0.f, peak_r = 0.f;
     float energy = 0.f;
     float block_peak = 0.f;
-    const float inv_sqrt2 = 0.70710678f;
 
     /*
      * Decimate into the scope ring so we do not thrash the buffer on
@@ -330,8 +329,8 @@ static clap_process_status go_process(const clap_plugin_t *plugin,
         energy += aL + aR;
 
         /* Mid/Side magnitude for auto-scale */
-        float side = (L - R) * inv_sqrt2;
-        float mid  = (L + R) * inv_sqrt2;
+        float side = (L - R) * GO_INV_SQRT2;
+        float mid  = (L + R) * GO_INV_SQRT2;
         float mag  = sqrtf(side * side + mid * mid);
         if (mag > block_peak) block_peak = mag;
 
