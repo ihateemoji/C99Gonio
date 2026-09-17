@@ -1,6 +1,6 @@
 # C99Gonio
 
-Minimal C99 CLAP stereo goniometer with a lightweight X11 GUI
+Minimal C99 CLAP goniometer with a lightweight X11 GUI
 
 ## Build
 
@@ -21,13 +21,13 @@ which will produce a "C99Gonio.clap" binary. You could install this binary manua
 make install
 ```
 
+Then rescan plugins in any CLAP host (Bitwig, Reaper, Ardour, Carla, …).
+
 PS: If you are like me and forget --recurse-submodules 9/10 times, you can just cd into the cloned directory and
 ```bash
 git submodule update --init --recursive
 ```
 
-Then rescan plugins in any CLAP host (Bitwig, Reaper, Ardour, Carla, …).
-
 ## Disclaimer
 
-I have very minimal experience with GUI programming, so I started this project as an opportunity to gain some. Getting this simple X11 GUI working involved several 100+ Chromium tabs Googling sessions, and a fair share of vibe coding. Any improvements/contributions from anyone more experienced than me will be greatly appreciated!
+I have very minimal experience with GUI programming, so I started this project as an opportunity to gain some. Any improvements/contributions from anyone more experienced than me will be greatly appreciated!
