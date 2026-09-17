@@ -1,6 +1,6 @@
 # C99Gonio
 
-**Minimal C99 CLAP stereo goniometer** with a lightweight X11 GUI
+Minimal C99 CLAP stereo goniometer with a lightweight X11 GUI
 
 ## Build
 
