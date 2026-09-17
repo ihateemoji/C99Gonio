@@ -164,7 +164,6 @@ static void go_gui_paint(go_plug_t *plug) {
     unsigned long grid   = go_col(GO_GRID_R, GO_GRID_G, GO_GRID_B);
     unsigned long axis   = go_col(GO_AXIS_R, GO_AXIS_G, GO_AXIS_B);
     unsigned long fg     = go_col(GO_FG_R, GO_FG_G, GO_FG_B);
-    unsigned long mut    = go_col(GO_MUT_R, GO_MUT_G, GO_MUT_B);
     unsigned long cyan   = go_col(GO_CYA_R, GO_CYA_G, GO_CYA_B);
     unsigned long green  = go_col(GO_GRN_R, GO_GRN_G, GO_GRN_B);
     unsigned long yellow = go_col(GO_YEL_R, GO_YEL_G, GO_YEL_B);
@@ -209,11 +208,6 @@ static void go_gui_paint(go_plug_t *plug) {
                             sy + scope_size - 4, go_col(32, 36, 44));
     go_line(plug, sx + 4, sy + scope_size - 4, sx + scope_size - 4,
                                              sy + 4, go_col(32, 36, 44));
-    /* add a little bit of text to make it clear what is being measured */
-    go_text(plug, sx + 4, cy - 4, "S", mut);
-    go_text(plug, sx + scope_size - 14, cy - 4, "S", mut);
-    go_text(plug, cx + 4, sy + 14, "M+", mut);
-    go_text(plug, cx + 4, sy + scope_size - 6, "M-", mut);
     /* constants for smoothing and Mid/Side projection */
     const float inv_sqrt2 = GO_INV_SQRT2;
     const float smooth = GO_SMOOTH;

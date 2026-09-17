@@ -90,9 +90,6 @@
 #define GO_FG_R   230
 #define GO_FG_G   234
 #define GO_FG_B   240
-#define GO_MUT_R  100
-#define GO_MUT_G  108
-#define GO_MUT_B  120
 #define GO_CYA_R  70
 #define GO_CYA_G  200
 #define GO_CYA_B  220
