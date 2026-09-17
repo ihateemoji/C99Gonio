@@ -1,6 +1,4 @@
 # C99Gonio — minimal C99 CLAP stereo goniometer
-# Vendor  : ihateemoji
-# Version : 0.0.1
 #
 #   make          build C99Gonio.clap (X11 GUI @ 60 fps)
 #   make install  copy into ~/.clap
