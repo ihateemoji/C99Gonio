@@ -14,9 +14,7 @@ git clone --recurse-submodules https://github.com/ihateemoji/C99Gonio
 ```
 and then simply build the code with 
 ```bash
-make            # → C99Gonio.clap
-make install    # copies to ~/.clap/C99Gonio.clap
-make clean
+make            
 ```
 which will produce a "C99Gonio.clap" binary. You could install this binary manually or let make copy it for you into ~/.clap/C99Gonio.clap via 
 ```bash
