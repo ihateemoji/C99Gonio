@@ -5,8 +5,6 @@
  *   - clap_entry / factory / plugin lifecycle
  *   - stereo audio pass-through
  *   - ring-buffer capture of (L,R) pairs for the GUI
- *   - correlation + balance meters (smoothed, hold-on-silence)
- *   - auto-scale peak tracking (used by the GUI to fit the trace)
  *   - CLAP state save/load (currently just magic/version)
  *
  * There are deliberately no parameters.  Display zoom is automatic.
@@ -352,7 +350,7 @@ static const clap_plugin_state_t s_state = {
 
 static clap_process_status go_process(const clap_plugin_t *plugin,
                                       const clap_process_t *process) {
-    /* Function that processes one audio block and generates note events.
+    /* Function that processes one audio block.
        Inputs:
         <*clap_plugin_t>   - plug-in instance
         <*clap_process_t>  - current processing block
@@ -375,21 +373,9 @@ static clap_process_status go_process(const clap_plugin_t *plugin,
                   process->audio_outputs[0].channel_count > 1
                       ? process->audio_outputs[0].data32[1] : outL;
     if (!inL || !outL) return CLAP_PROCESS_CONTINUE;
-    /*
-     * Accumulators for this block.
-     *   sum_ll / sum_rr / sum_lr  → Pearson correlation
-     *   peak_l / peak_r           → balance
-     *   energy                    → decide whether to update or hold meters
-     *   block_peak                → auto-scale (max hypot of Mid/Side)
-     */
-    float sum_ll = 0.f, sum_rr = 0.f, sum_lr = 0.f;
-    float peak_l = 0.f, peak_r = 0.f;
-    float energy = 0.f;
-    float block_peak = 0.f;
-    /*
-     * Decimate into the scope ring so we do not thrash the buffer on
-     * every sample.  Aim for roughly 64 points per process block.
-     */
+
+    /* Pure pass-through.  All analysis (scope, corr, bal, auto_peak)
+       lives in the GUI thread.  We only feed raw (L,R) pairs. */
     uint32_t step = frames > 64 ? frames / 64 : 1;
     if (step < 1) step = 1;
 
@@ -397,24 +383,8 @@ static clap_process_status go_process(const clap_plugin_t *plugin,
         float L = inL[i];
         float R = inR ? inR[i] : L;
 
-        /* True pass-through — zero latency, no DSP colouration. */
         outL[i] = L;
         if (outR) outR[i] = R;
-
-        float aL = fabsf(L), aR = fabsf(R);
-        if (aL > peak_l) peak_l = aL;
-        if (aR > peak_r) peak_r = aR;
-
-        sum_ll += L * L;
-        sum_rr += R * R;
-        sum_lr += L * R;
-        energy += aL + aR;
-
-        /* Mid/Side magnitude for auto-scale */
-        float side = (L - R) * GO_INV_SQRT2;
-        float mid  = (L + R) * GO_INV_SQRT2;
-        float mag  = sqrtf(side * side + mid * mid);
-        if (mag > block_peak) block_peak = mag;
 
         if ((i % step) == 0) {
             go_point_t *pt = &plug->scope[plug->scope_write];
@@ -424,42 +394,6 @@ static clap_process_status go_process(const clap_plugin_t *plugin,
             if (plug->scope_count < GO_SCOPE_LEN)
                 plug->scope_count++;
         }
-    }
-
-    /*
-     * Auto-scale peak: attack fast, release slow so the view expands
-     * quickly on loud material and settles calmly when it gets quieter.
-     */
-    if (block_peak > plug->auto_peak)
-        plug->auto_peak = plug->auto_peak * 0.70f + block_peak * 0.30f; /* fast attack  */
-    else
-        plug->auto_peak = plug->auto_peak * 0.995f + block_peak * 0.005f; /* slow release */
-    if (plug->auto_peak < 0.001f)
-        plug->auto_peak = 0.001f;   /* floor — avoid division by zero */
-
-    /*
-     * Meters: only update when the block has meaningful energy.
-     * Otherwise hold with a very slow decay so bars do not flash off
-     * between silent process() calls from the host.
-     */
-    const float energy_thresh = 1e-4f * (float)frames;
-
-    if (energy > energy_thresh) {
-        float denom = sqrtf(sum_ll * sum_rr);
-        float c = (denom > 1e-12f) ? (sum_lr / denom) : 0.f;
-        plug->corr = plug->corr * 0.85f + c * 0.15f;
-
-        float tot = peak_l + peak_r;
-        float b = (tot > 1e-6f) ? ((peak_r - peak_l) / tot) : 0.f;
-        plug->bal = plug->bal * 0.85f + b * 0.15f;
-
-        plug->peak_l = peak_l;
-        plug->peak_r = peak_r;
-    } else {
-        plug->corr   *= 0.995f;
-        plug->bal    *= 0.995f;
-        plug->peak_l *= 0.99f;
-        plug->peak_r *= 0.99f;
     }
 
     return CLAP_PROCESS_CONTINUE;
