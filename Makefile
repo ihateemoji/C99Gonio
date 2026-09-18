@@ -6,7 +6,7 @@
 
 CC      ?= gcc
 CFLAGS  ?= -O3 -fPIC -Wall -Wextra -std=c99
-CFLAGS  += -Ithird_party/clap/include -Isrc
+CFLAGS  += -Ithird_party/clap/include -I/usr/local/include
 LDFLAGS ?= -shared -Wl,--version-script=export.map -lm -lX11
 
 SRC = src/goniometer.c src/gui_x11.c
