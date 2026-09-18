@@ -380,8 +380,10 @@ static clap_process_status go_process(const clap_plugin_t *plugin,
     if (!inL || !outL) {
         return CLAP_PROCESS_CONTINUE;
     }
-    /* Pure pass-through.  All analysis (scope, corr, bal, auto_peak)
-       lives in the GUI thread.  We only feed raw (L,R) pairs. */
+    /* Pure pass-through.  We also capture a decimated stream of (L,R)
+        pairs into the scope ring and update the correlation / balance
+        meters here on the audio thread.  Display-trail smoothing and
+        auto-scale live in the GUI paint path. */
     /*
      * Accumulators for this block.
      *   sum_ll / sum_rr / sum_lr  → Pearson correlation
