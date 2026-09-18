@@ -66,7 +66,7 @@
 #define GO_TOP          26           /* title bar height / top margin      */
 #define GO_MARGIN       16           /* scope outer margin                 */
 #define GO_BAR_H        12           /* meter bar thickness                */
-#define GO_CLAMP        1.05f        /* max overshoot before clamping      */
+#define GO_CLAMP        0.97f        /* max overshoot before clamping      */
 #define GO_INV_SCALE    0.92f        /* peak maps to this fraction of rad  */
 #define GO_SMOOTH       0.22f        /* display trail smoothing factor     */
 #define GO_INV_SQRT2    0.70710678f  /* 1/sqrt(2) for Mid/Side projection  */
