@@ -443,12 +443,15 @@ static clap_process_status go_process(const clap_plugin_t *plugin,
     return CLAP_PROCESS_CONTINUE;
 }
 
-/* ========================================================================
- * Extensions + descriptor + factory + entry
- * ======================================================================== */
-
-static const void *go_get_extension(const clap_plugin_t *plugin, const char *id)
-{
+static const void *go_get_extension(const clap_plugin_t *plugin,
+                                                    const char *id) {
+     /* Return the extension interface requested by the host.
+         Inputs:
+           <*clap_plugin_t> - plug-in instance
+           <*char>          - identifier of the requested extension
+         Returns:
+           <*void> - pointer to the requested extension,
+                    or NULL when unsupported */
     (void)plugin;
     if (!strcmp(id, CLAP_EXT_AUDIO_PORTS))      return &s_audio_ports;
     if (!strcmp(id, CLAP_EXT_PARAMS))           return &s_params;
@@ -458,6 +461,8 @@ static const void *go_get_extension(const clap_plugin_t *plugin, const char *id)
     return NULL;
 }
 
+/* List the capabilities advertised by this plug-in.
+    The NULL terminator is required by the CLAP plug-in format. */
 static const char *s_features[] = {
     CLAP_PLUGIN_FEATURE_AUDIO_EFFECT,
     CLAP_PLUGIN_FEATURE_STEREO,
@@ -466,6 +471,7 @@ static const char *s_features[] = {
     NULL
 };
 
+/* Description of the plug-in presented to the host. */
 static const clap_plugin_descriptor_t s_desc = {
     .clap_version = CLAP_VERSION_INIT,
     .id           = "com.ihateemoji.c99gonio",
@@ -479,11 +485,16 @@ static const clap_plugin_descriptor_t s_desc = {
     .features     = s_features
 };
 
-static const clap_plugin_t *go_create(const clap_host_t *host)
-{
+static const clap_plugin_t *go_create(const clap_host_t *host) {
+   /* Function that creates and initialises a new plug-in instance.
+       Inputs:
+         <*clap_host_t> - host that owns and controls the plug-in
+       Returns:
+         <*clap_plugin_t> - initialized plug-in instance, or NULL on failure
+    The instance is allocated, initialized with default state and processing
+    values, and populated with pointers to the plug-in lifecycle callbacks. */
     go_plug_t *plug = (go_plug_t *)calloc(1, sizeof(go_plug_t));
     if (!plug) return NULL;
-
     go_state_default(&plug->st);
     plug->host = host;
     plug->sr = 44100.0;
@@ -491,7 +502,6 @@ static const clap_plugin_t *go_create(const clap_host_t *host)
     plug->timer_fd = -1;
     plug->back = None;
     plug->auto_peak = 0.01f;
-
     plug->plugin.desc = &s_desc;
     plug->plugin.plugin_data = plug;
     plug->plugin.init = go_init;
@@ -507,15 +517,27 @@ static const clap_plugin_t *go_create(const clap_host_t *host)
     return &plug->plugin;
 }
 
-static uint32_t factory_count(const clap_plugin_factory_t *f)
-{
+static uint32_t factory_count(const clap_plugin_factory_t *f) {
+    /* Function that returns the number of plug-ins provided by this factory.
+        Inputs:
+         <*clap_plugin_factory_t> - plug-in factory
+        Returns:
+         <uint32_t> - number of available plug-in descriptors
+        This factory exposes exactly one plug-in. */
     (void)f;
     return 1;
 }
 
-static const clap_plugin_descriptor_t *factory_desc(const clap_plugin_factory_t *f,
-                                                    uint32_t index)
-{
+static const clap_plugin_descriptor_t *factory_desc(
+                const clap_plugin_factory_t *f, uint32_t index) {
+    /* Function that returns the descriptor for a plug-in at the specified
+            factory index.
+        Inputs:
+         <*clap_plugin_factory_t> - plug-in factory
+         <uint32_t>               - zero-based plug-in index
+        Returns:
+         <*clap_plugin_descriptor_t> - descriptor for the requested plug-in,
+                                      or NULL for an invalid index */
     (void)f;
     if (index != 0) return NULL;
     return &s_desc;
@@ -523,8 +545,17 @@ static const clap_plugin_descriptor_t *factory_desc(const clap_plugin_factory_t 
 
 static const clap_plugin_t *factory_create(const clap_plugin_factory_t *f,
                                            const clap_host_t *host,
-                                           const char *plugin_id)
-{
+                                           const char *plugin_id) {
+    /* Function that creates a plug-in instance from a factory request.
+        Inputs:
+         <*clap_plugin_factory_t> - plug-in factory
+         <*clap_host_t>           - host requesting the plug-in
+         <*char>                  - requested plug-in identifier
+        Returns:
+         <*clap_plugin_t> - newly created plug-in instance, or NULL when the
+                           request is invalid or unsupported
+        The requested identifier and host CLAP version are validated before
+         creating the plug-in instance. */
     (void)f;
     if (!host || !plugin_id) return NULL;
     if (strcmp(plugin_id, s_desc.id) != 0) return NULL;
@@ -532,26 +563,40 @@ static const clap_plugin_t *factory_create(const clap_plugin_factory_t *f,
     return go_create(host);
 }
 
+/* Factory interface used by the host to discover and create plug-ins. */
 static const clap_plugin_factory_t s_factory = {
     .get_plugin_count      = factory_count,
     .get_plugin_descriptor = factory_desc,
     .create_plugin         = factory_create
 };
 
-static bool entry_init(const char *plugin_path)
-{
+static bool entry_init(const char *plugin_path) {
+    /* Function that initialises the plug-in entry point.
+        Inputs:
+          <*char> - path to the plug-in binary
+        Returns:
+          <bool> - true when initialization succeeds
+        No global initialization is currently required, so this function
+        always reports success. */
     (void)plugin_path;
     return true;
 }
 
+/* Deinitialise the plug-in entry point. */
 static void entry_deinit(void) {}
 
-static const void *entry_get_factory(const char *factory_id)
-{
+static const void *entry_get_factory(const char *factory_id) {
+    /* Function that returns a factory matching the requested
+                factory identifier.
+        Inputs:
+         <*char> - identifier of the requested factory
+        Returns:
+         <*void> - pointer to the matching factory, or NULL when unsupported */
     if (!strcmp(factory_id, CLAP_PLUGIN_FACTORY_ID)) return &s_factory;
     return NULL;
 }
 
+/* Public CLAP entry point exported by the plug-in binary. */
 CLAP_EXPORT const clap_plugin_entry_t clap_entry = {
     .clap_version = CLAP_VERSION_INIT,
     .init         = entry_init,

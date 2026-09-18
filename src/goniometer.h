@@ -1,8 +1,5 @@
-#ifndef GONIOMETER_DOT_H
-#define GONIOMETER_DOT_H
-
 /*
- * C99Gonio — minimal C99 CLAP stereo goniometer
+ * C99Gonio — minimal C99 CLAP goniometer
  * ==============================================
  *
  * A pure-C99 CLAP audio effect that visualises the stereo field as a
@@ -22,6 +19,8 @@
  * GUI is driven by timerfd at ~60 Hz via CLAP posix-fd-support, drawn
  * into an offscreen Pixmap and blitted in one shot to avoid flicker.
  */
+#ifndef GONIOMETER_DOT_H
+#define GONIOMETER_DOT_H
 
 #include <stdint.h>
 #include <stddef.h>
@@ -170,7 +169,7 @@ typedef struct {
     Display   *dpy;
     Window     win;
     GC         gc;
-    Pixmap     back;            /* offscreen buffer — single blit, no flicker */
+    Pixmap     back;            /* offscreen buffer single blit, no flicker */
     int        back_w, back_h;
     int        gui_w, gui_h;
     int        gui_created;
