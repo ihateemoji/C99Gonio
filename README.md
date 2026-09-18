@@ -2,6 +2,8 @@
 
 Minimal C99 CLAP goniometer with a lightweight X11 GUI
 
+![screenshot](imgs/C99Gonio.jpeg?raw=true)
+
 ## Build
 
 All you need is:
