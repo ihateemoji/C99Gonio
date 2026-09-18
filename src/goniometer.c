@@ -89,6 +89,8 @@ static bool go_init(const clap_plugin_t *plugin) {
         plug->host->get_extension(plug->host, CLAP_EXT_GUI);
     plug->host_fd = (const clap_host_posix_fd_support_t *)
         plug->host->get_extension(plug->host, CLAP_EXT_POSIX_FD_SUPPORT);
+    plug->host_timer = (const clap_host_timer_support_t *)
+        plug->host->get_extension(plug->host, CLAP_EXT_TIMER_SUPPORT);
     return true;
 }
 
@@ -458,6 +460,7 @@ static const void *go_get_extension(const clap_plugin_t *plugin,
     if (!strcmp(id, CLAP_EXT_STATE))            return &s_state;
     if (!strcmp(id, CLAP_EXT_GUI))              return &go_gui_ext;
     if (!strcmp(id, CLAP_EXT_POSIX_FD_SUPPORT)) return &go_posix_fd_ext;
+    if (!strcmp(id, CLAP_EXT_TIMER_SUPPORT))    return &go_timer_ext;
     return NULL;
 }
 
@@ -499,7 +502,7 @@ static const clap_plugin_t *go_create(const clap_host_t *host) {
     plug->host = host;
     plug->sr = 44100.0;
     plug->xfd = -1;
-    plug->timer_fd = -1;
+    plug->timer_id = CLAP_INVALID_ID;
     plug->back = None;
     plug->auto_peak = 0.01f;
     plug->plugin.desc = &s_desc;

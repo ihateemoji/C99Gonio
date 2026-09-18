@@ -16,8 +16,10 @@
  * the Mid/Side magnitude and zooms so the trace always fits inside the
  * scope circle.  There are no user parameters.
  *
- * GUI is driven by timerfd at ~60 Hz via CLAP posix-fd-support, drawn
- * into an offscreen Pixmap and blitted in one shot to avoid flicker.
+ * GUI is driven by CLAP timer-support at ~60 Hz, drawn into an
+ * offscreen Pixmap and blitted in one shot to avoid flicker.
+ * X11 events are delivered via CLAP posix-fd-support on the
+ * connection file descriptor.
  */
 #ifndef GONIOMETER_DOT_H
 #define GONIOMETER_DOT_H
@@ -30,19 +32,13 @@
 #include <string.h>
 #include <math.h>
 #include <unistd.h>
-#include <sys/timerfd.h>
 
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 
 #include <clap/clap.h>
-#include <clap/host.h>
-#include <clap/ext/gui.h>
-#include <clap/ext/log.h>
-#include <clap/ext/params.h>
-#include <clap/ext/posix-fd-support.h>
-#include <clap/ext/state.h>
-#include <clap/ext/audio-ports.h>
+/* clap.h already pulls in host + all official extensions
+ * (gui, log, params, posix-fd-support, timer-support, state, audio-ports, …) */
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846264338327950288
@@ -128,6 +124,7 @@ typedef struct {
     const clap_host_state_t *host_state;
     const clap_host_gui_t *host_gui;
     const clap_host_posix_fd_support_t *host_fd;
+    const clap_host_timer_support_t *host_timer;
 
     go_state_t st;
     double     sr;              /* sample rate set in activate()           */
@@ -175,7 +172,7 @@ typedef struct {
     int        gui_created;
     int        gui_visible;
     int        xfd;             /* X connection fd registered with the host */
-    int        timer_fd;        /* timerfd for ~60 Hz redraw                */
+    clap_id    timer_id;        /* CLAP timer for ~60 Hz redraw             */
 } go_plug_t;
 
 void go_state_default(go_state_t *st);
@@ -184,6 +181,7 @@ void go_clamp(go_state_t *st);
 /* Implemented in gui_x11.c */
 extern const clap_plugin_gui_t go_gui_ext;
 extern const clap_plugin_posix_fd_support_t go_posix_fd_ext;
+extern const clap_plugin_timer_support_t go_timer_ext;
 void go_gui_redraw(go_plug_t *plug);
 
 #endif /* GONIOMETER_DOT_H */

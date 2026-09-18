@@ -9,10 +9,10 @@
  *
  * Redraw cadence
  * --------------
- * A timerfd fires every ~16.7 ms and is registered with the host via
- * CLAP_EXT_POSIX_FD_SUPPORT.  When the host calls on_fd for that fd we
- * paint.  X events (Expose, ConfigureNotify, ButtonPress) also trigger
- * a paint when needed.
+ * A CLAP timer (CLAP_EXT_TIMER_SUPPORT) fires every ~16–17 ms (~60 Hz).
+ * When the host calls on_timer we paint.  X events (Expose,
+ * ConfigureNotify) are delivered via the X connection fd registered
+ * with CLAP_EXT_POSIX_FD_SUPPORT and also trigger a paint when needed.
  *
  * Auto-scale
  * ----------
@@ -441,19 +441,15 @@ static bool go_gui_create(const clap_plugin_t *plugin,
     if (plug->host_fd && plug->host_fd->register_fd)
         plug->host_fd->register_fd(plug->host, plug->xfd, CLAP_POSIX_FD_READ);
     /*
-     * ~60 Hz timerfd.  The host polls this fd and calls our on_fd
-     * callback, which is the only place we continuous-redraw from.
+     * ~60 Hz CLAP timer.  The host calls our on_timer callback, which
+     * is the primary place we continuous-redraw from.  period_ms = 16
+     * is accepted by hosts that allow ≥30 Hz; many will round to 16–17.
      */
-    plug->timer_fd = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK);
-    if (plug->timer_fd >= 0) {
-        struct itimerspec ts;
-        ts.it_interval.tv_sec = 0;
-        ts.it_interval.tv_nsec = 16666667; /* ≈ 60 Hz */
-        ts.it_value = ts.it_interval;
-        timerfd_settime(plug->timer_fd, 0, &ts, NULL);
-        if (plug->host_fd && plug->host_fd->register_fd) {
-            plug->host_fd->register_fd(plug->host, plug->timer_fd,
-                                                    CLAP_POSIX_FD_READ);
+    plug->timer_id = CLAP_INVALID_ID;
+    if (plug->host_timer && plug->host_timer->register_timer) {
+        clap_id id = CLAP_INVALID_ID;
+        if (plug->host_timer->register_timer(plug->host, 16, &id)) {
+            plug->timer_id = id;
         }
     }
     go_ensure_back(plug);
@@ -466,20 +462,18 @@ static void go_gui_destroy(const clap_plugin_t *plugin) {
     /* CLAP GUI extension – destroy the X11 window and free all resources.
        Inputs:
          <*clap_plugin_t> - the plugin instance
-       Unregisters the file descriptor, frees the GC, destroys the window
-       and closes the display connection.  All related fields are reset. */
+       Unregisters the CLAP timer and X11 fd, frees the GC / pixmap,
+       destroys the window and closes the display.  All fields reset. */
     go_plug_t *plug = (go_plug_t *)plugin->plugin_data;
+    if (plug->host_timer && plug->host_timer->unregister_timer &&
+        plug->timer_id != CLAP_INVALID_ID) {
+        plug->host_timer->unregister_timer(plug->host, plug->timer_id);
+        plug->timer_id = CLAP_INVALID_ID;
+    }
     if (plug->host_fd && plug->host_fd->unregister_fd) {
         if (plug->xfd >= 0) {
             plug->host_fd->unregister_fd(plug->host, plug->xfd);
         }
-        if (plug->timer_fd >= 0) {
-            plug->host_fd->unregister_fd(plug->host, plug->timer_fd);
-        }
-    }
-    if (plug->timer_fd >= 0) {
-        close(plug->timer_fd);
-        plug->timer_fd = -1;
     }
     if (plug->back != None && plug->dpy) {
         XFreePixmap(plug->dpy, plug->back);
@@ -720,26 +714,19 @@ static void go_sync_size_from_parent(go_plug_t *plug) {
 
 static void go_gui_on_fd(const clap_plugin_t *plugin, int fd,
                                     clap_posix_fd_flags_t flags) {
-    /* CLAP POSIX FD support – process pending X11 events.
+    /* CLAP POSIX FD support – process pending X11 events on the
+       connection fd.  Timer-driven redraw is handled separately by
+       go_gui_on_timer (CLAP_EXT_TIMER_SUPPORT).
        Inputs:
          <*clap_plugin_t>     - the plugin instance
-         <fd>                 - file descriptor that became readable (unused)
-         <clap_posix_fd_flags_t> - event flags (unused)
-       Drains the X event queue.  Expose events trigger a full repaint;
-       ButtonPress events are dispatched to hc_gui_click or hc_gui_wheel;
-       ConfigureNotify events update the stored window size and repaint. */
+         <fd>                 - file descriptor that became readable
+         <clap_posix_fd_flags_t> - event flags
+       Drains the X event queue.  Expose and ConfigureNotify trigger
+       a full repaint.  ButtonPress is ignored (no interactive controls). */
     (void)flags;
+    (void)fd;
     go_plug_t *plug = (go_plug_t *)plugin->plugin_data;
     if (!plug->dpy) {
-        return;
-    }
-    if (plug->timer_fd >= 0 && fd == plug->timer_fd) {
-        uint64_t expirations;
-        while (read(plug->timer_fd, &expirations, sizeof(expirations)) > 0) {}
-        if (plug->gui_visible) {
-            go_sync_size_from_parent(plug);
-            go_gui_paint(plug);
-        }
         return;
     }
     XEvent ev;
@@ -762,6 +749,21 @@ static void go_gui_on_fd(const clap_plugin_t *plugin, int fd,
         /* ButtonPress intentionally ignored — no interactive controls. */
     }
     if (need_redraw) {
+        go_gui_paint(plug);
+    }
+}
+
+static void go_gui_on_timer(const clap_plugin_t *plugin, clap_id timer_id) {
+    /* CLAP timer-support – periodic redraw callback (~60 Hz).
+       Inputs:
+         <*clap_plugin_t> - the plugin instance
+         <timer_id>       - id of the timer that fired
+       Syncs window size from the host parent (if embedded) and paints. */
+    go_plug_t *plug = (go_plug_t *)plugin->plugin_data;
+    if (timer_id != plug->timer_id)
+        return;
+    if (plug->gui_visible && plug->dpy) {
+        go_sync_size_from_parent(plug);
         go_gui_paint(plug);
     }
 }
@@ -792,4 +794,10 @@ const clap_plugin_gui_t go_gui_ext = {
    readable so that events can be processed on the main thread. */
 const clap_plugin_posix_fd_support_t go_posix_fd_ext = {
     .on_fd = go_gui_on_fd
+};
+
+/* Static table of CLAP timer-support.
+   Host-driven periodic timer used for continuous ~60 Hz GUI refresh. */
+const clap_plugin_timer_support_t go_timer_ext = {
+    .on_timer = go_gui_on_timer
 };
