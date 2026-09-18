@@ -380,6 +380,16 @@ static clap_process_status go_process(const clap_plugin_t *plugin,
     }
     /* Pure pass-through.  All analysis (scope, corr, bal, auto_peak)
        lives in the GUI thread.  We only feed raw (L,R) pairs. */
+    /*
+     * Accumulators for this block.
+     *   sum_ll / sum_rr / sum_lr  → Pearson correlation
+     *   peak_l / peak_r           → balance
+     *   energy                    → decide whether to update or hold meters
+     *   block_peak                → auto-scale (max hypot of Mid/Side)
+     */
+    float sum_ll = 0.f, sum_rr = 0.f, sum_lr = 0.f;
+    float peak_l = 0.f, peak_r = 0.f;
+    float energy = 0.f;
     /* we do not want to flood the gui with points, so ensure we never write
                                                         more that 64 frames */
     uint32_t step = frames > 64 ? frames / 64 : 1;
@@ -391,6 +401,14 @@ static clap_process_status go_process(const clap_plugin_t *plugin,
         /* direct pass through to the output */
         outL[i] = L;
         if (outR) outR[i] = R;
+        /* get the data needed for the meters */
+        float aL = fabsf(L), aR = fabsf(R);
+        if (aL > peak_l) peak_l = aL;
+        if (aR > peak_r) peak_r = aR;
+        sum_ll += L * L;
+        sum_rr += R * R;
+        sum_lr += L * R;
+        energy += aL + aR;
         /* on every step, we sample our signal for the gui to draw */
         if ((i % step) == 0) {
             go_point_t *pt = &plug->scope[plug->scope_write];
@@ -400,6 +418,27 @@ static clap_process_status go_process(const clap_plugin_t *plugin,
             if (plug->scope_count < GO_SCOPE_LEN)
                 plug->scope_count++;
         }
+    }
+    /*
+     * Meters: only update when the block has meaningful energy.
+     * Otherwise hold with a very slow decay so bars do not flash off
+     * between silent process() calls from the host.
+     */
+    const float energy_thresh = 1e-4f * (float)frames;
+    if (energy > energy_thresh) {
+        float denom = sqrtf(sum_ll * sum_rr);
+        float c = (denom > 1e-12f) ? (sum_lr / denom) : 0.f;
+        plug->corr = plug->corr * GO_PEAK_UP_A + c * GO_PEAK_UP_B;
+        float tot = peak_l + peak_r;
+        float b = (tot > 1e-6f) ? ((peak_r - peak_l) / tot) : 0.f;
+        plug->bal = plug->bal * GO_PEAK_DN_A + b * GO_PEAK_DN_B;
+        plug->peak_l = peak_l;
+        plug->peak_r = peak_r;
+    } else {
+        plug->corr   *= 0.995f;
+        plug->bal    *= 0.995f;
+        plug->peak_l *= 0.99f;
+        plug->peak_r *= 0.99f;
     }
     return CLAP_PROCESS_CONTINUE;
 }
