@@ -674,6 +674,50 @@ static bool go_gui_hide(const clap_plugin_t *plugin) {
     return true;
 }
 
+static void go_sync_size_from_parent(go_plug_t *plug) {
+    /* Take care of one specific edge case:
+        If the host grows its container without resizing our child window
+        (common when dragging the bottom-right corner), match our window to
+        the parent's client size so the UI fills the frame instead of leaving
+        a black margin.
+        Inputs:
+            <*go_plug_t> - instance of our goniometer plug-in  */
+    /* if we have no window open, our job is easy */
+    if (!plug->dpy || !plug->win) return;
+    /* query X tree */
+    Window root = 0, parent = 0, *kids = NULL;
+    unsigned int nkids = 0;
+    if (!XQueryTree(plug->dpy, plug->win, &root, &parent, &kids, &nkids)) {
+        return;
+    }
+    /* clear the list of window IDs as we are not using it*/
+    if (kids) {
+        XFree(kids);
+    }
+    /* not reparented (still under root) — nothing to sync */
+    if (!parent || parent == root) {
+        return;
+    }
+    /* read the parent's width/height in pixels (host GUI frame) */
+    Window r;
+    int x, y;
+    unsigned int pw, ph, bw, depth;
+    if (!XGetGeometry(plug->dpy, parent, &r, &x, &y, &pw, &ph, &bw, &depth))
+        return;
+    int nw = (int)pw;
+    int nh = (int)ph;
+    if (nw < 320) nw = 320;
+    if (nh < 420) nh = 420;
+    /* already matching — avoid a redundant XResizeWindow every frame */
+    if (nw == plug->gui_w && nh == plug->gui_h) {
+        return;
+    }
+    /* if not, we update the layout */
+    plug->gui_w = nw;
+    plug->gui_h = nh;
+    XResizeWindow(plug->dpy, plug->win, (unsigned)nw, (unsigned)nh);
+}
+
 static void go_gui_on_fd(const clap_plugin_t *plugin, int fd,
                                     clap_posix_fd_flags_t flags) {
     /* CLAP POSIX FD support – process pending X11 events.
@@ -692,7 +736,10 @@ static void go_gui_on_fd(const clap_plugin_t *plugin, int fd,
     if (plug->timer_fd >= 0 && fd == plug->timer_fd) {
         uint64_t expirations;
         while (read(plug->timer_fd, &expirations, sizeof(expirations)) > 0) {}
-        if (plug->gui_visible) go_gui_paint(plug);
+        if (plug->gui_visible) {
+            go_sync_size_from_parent(plug);
+            go_gui_paint(plug);
+        }
         return;
     }
     XEvent ev;
@@ -709,13 +756,14 @@ static void go_gui_on_fd(const clap_plugin_t *plugin, int fd,
             if (nw != plug->gui_w || nh != plug->gui_h) {
                 plug->gui_w = nw;
                 plug->gui_h = nh;
-                go_ensure_back(plug);
             }
             need_redraw = true;
         }
         /* ButtonPress intentionally ignored — no interactive controls. */
     }
-    if (need_redraw) go_gui_paint(plug);
+    if (need_redraw) {
+        go_gui_paint(plug);
+    }
 }
 
 /* Static table of CLAP GUI extension entry points.
