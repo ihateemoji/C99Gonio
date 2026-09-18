@@ -14,29 +14,36 @@
 
 #include "goniometer.h"
 
-/* ========================================================================
- * State helpers
- * ======================================================================== */
-
-void go_state_default(go_state_t *st)
-{
+void go_state_default(go_state_t *st) {
+    /* Set the default state variables of the plug-in
+        Inputs:
+            <*go_state_t> - pointer to the instance of the plug-in's state */
+    /* set the magic and version */
     memset(st, 0, sizeof(*st));
     st->magic   = GO_MAGIC;
     st->version = GO_VERSION;
 }
 
-void go_clamp(go_state_t *st)
-{
-    /* Nothing to clamp yet — kept for symmetry with other plugins. */
+void go_clamp(go_state_t *st) {
+    /* Force every field of a state structure into a legal range.
+       Inputs:
+         <*go_state_t> - structure that may contain out-of-range values
+       Outputs:
+         All numeric fields are clamped or wrapped so that subsequent
+         generation and playback code can assume valid data. */
+    /* Nothing to clamp yet — kept for symmetry with other plug-ins. */
     (void)st;
 }
 
-/* ========================================================================
- * Stream I/O helpers for the CLAP state extension
- * ======================================================================== */
-
-static int write_all(const clap_ostream_t *s, const void *p, uint64_t n)
-{
+static int write_all(const clap_ostream_t *s, const void *p, uint64_t n) {
+    /* Function that writes given number of bytes to CLAP output stream.
+       Inputs:
+        <*clap_ostream_t> - output stream supplied by CLAP host
+        <*void>           - address of the data to write
+        <uint64_t>        - number of bytes to write
+       Returns:
+        <int>             - 1 if all bytes were written successfully
+                            0 if the stream reported an error */
     const uint8_t *b = (const uint8_t *)p;
     uint64_t off = 0;
     while (off < n) {
@@ -47,8 +54,15 @@ static int write_all(const clap_ostream_t *s, const void *p, uint64_t n)
     return 1;
 }
 
-static int read_all(const clap_istream_t *s, void *p, uint64_t n)
-{
+static int read_all(const clap_istream_t *s, void *p, uint64_t n) {
+    /* Function that reads given number of bytes from CLAP output stream.
+       Inputs:
+        <*clap_istream_t> - input stream supplied by the host
+        <*void>           - pointer to the destination memory
+        <uint64_t>        - number of bytes to read 
+       Returns:
+        <int>             - 1 if all bytes were read successfully
+                            0 if the stream reported an error */
     uint8_t *b = (uint8_t *)p;
     uint64_t off = 0;
     while (off < n) {
@@ -59,14 +73,13 @@ static int read_all(const clap_istream_t *s, void *p, uint64_t n)
     return 1;
 }
 
-/* ========================================================================
- * Plugin lifecycle
- * ======================================================================== */
-
-static bool go_init(const clap_plugin_t *plugin)
-{
+static bool go_init(const clap_plugin_t *plugin) {
+    /* Function that initialises the instance of the plug-in.
+       Inputs:
+        <*clap_plugin_t> - CLAP plug-in instance to be initialised
+       Outputs:
+        <bool>           - whether or not the initialisation was successful */
     go_plug_t *plug = (go_plug_t *)plugin->plugin_data;
-
     /* Cache host extensions we care about (may be NULL on minimal hosts). */
     plug->host_log = (const clap_host_log_t *)
         plug->host->get_extension(plug->host, CLAP_EXT_LOG);
@@ -81,21 +94,28 @@ static bool go_init(const clap_plugin_t *plugin)
     return true;
 }
 
-static void go_destroy(const clap_plugin_t *plugin)
-{
+static void go_destroy(const clap_plugin_t *plugin) {
+    /* Function that destroys the instance of the plug-in.
+       Inputs:
+        <*clap_plugin_t> - CLAP plug-in instance to be destroyed */
     free(plugin->plugin_data);
 }
 
 static bool go_activate(const clap_plugin_t *plugin, double sr,
-                        uint32_t min_frames, uint32_t max_frames)
-{
+                        uint32_t min_frames, uint32_t max_frames) {
+    /* Function that activates the plug-in and begins processing.
+       Inputs:
+        <double> - host sample rate
+        <uint32_t> - minimum audio block size
+        <uint32_t> - maximum audio block size
+       Outputs:
+        <bool>     - whether or not the activation was successful */
+    /* these are meaningless as this is not an audio plug-in */
     (void)min_frames;
     (void)max_frames;
     go_plug_t *plug = (go_plug_t *)plugin->plugin_data;
-
     plug->sr = sr > 0.0 ? sr : 44100.0;
     plug->active = 1;
-
     /* Clear analysis state so we do not show stale data after re-activate. */
     plug->scope_write = 0;
     plug->scope_count = 0;
@@ -107,24 +127,32 @@ static bool go_activate(const clap_plugin_t *plugin, double sr,
     return true;
 }
 
-static void go_deactivate(const clap_plugin_t *plugin)
-{
+static void go_deactivate(const clap_plugin_t *plugin) {
+    /* Function that deactivates the instance of the plug-in.
+       Inputs:
+        <*clap_plugin_t> - CLAP plug-in instance to be deactivated */
     ((go_plug_t *)plugin->plugin_data)->active = 0;
 }
 
-static bool go_start_processing(const clap_plugin_t *plugin)
-{
+static bool go_start_processing(const clap_plugin_t *plugin) {
+    /* Function that starts audio processing by the plug-in.
+       Inputs:
+        <*clap_plugin_t> - CLAP plug-in instance */
     ((go_plug_t *)plugin->plugin_data)->processing = 1;
     return true;
 }
 
-static void go_stop_processing(const clap_plugin_t *plugin)
-{
+static void go_stop_processing(const clap_plugin_t *plugin) {
+    /* Function that stops audio processing by the plug-in.
+       Inputs:
+        <*clap_plugin_t> - CLAP plug-in instance */
     ((go_plug_t *)plugin->plugin_data)->processing = 0;
 }
 
-static void go_reset(const clap_plugin_t *plugin)
-{
+static void go_reset(const clap_plugin_t *plugin) {
+    /* Function that resets audio processing by the plug-in.
+       Inputs:
+        <*clap_plugin_t> - CLAP plug-in instance */
     go_plug_t *plug = (go_plug_t *)plugin->plugin_data;
     plug->scope_write = 0;
     plug->scope_count = 0;
@@ -135,28 +163,40 @@ static void go_reset(const clap_plugin_t *plugin)
     plug->peak_l = plug->peak_r = 0.f;
 }
 
-static void go_on_main_thread(const clap_plugin_t *plugin)
-{
+static void go_on_main_thread(const clap_plugin_t *plugin) {
+    /* Function that handles main thread work (none in our case).
+       Inputs:
+        <*clap_plugin_t> - CLAP plug-in instance */
     (void)plugin;
 }
 
-/* ========================================================================
- * Audio ports — one stereo in, one stereo out (main)
- * ======================================================================== */
-
-static uint32_t audio_ports_count(const clap_plugin_t *plugin, bool is_input)
-{
+static uint32_t audio_ports_count(const clap_plugin_t *plugin,
+                                                    bool is_input) {
+    /* Function that returns the number of audio ports exposed by the plugin.
+       Inputs:
+        <*clap_plugin_t> - plugin instance
+        <bool>           - whether the requested ports are inputs
+       Returns:
+        <uint32_t> - number of audio ports in the requested direction
+       The plugin has one input and one output port -> very simple */
     (void)plugin;
     (void)is_input;
     return 1;
 }
 
 static bool audio_ports_get(const clap_plugin_t *plugin, uint32_t index,
-                            bool is_input, clap_audio_port_info_t *info)
-{
+                            bool is_input, clap_audio_port_info_t *info) {
+    /* Function that describes one of the plugin's audio ports.
+       Inputs:
+        <*clap_plugin_t>             - plugin instance
+        <uint32_t>                   - requested port index
+        <bool>                       - whether the requested port is an input
+        <*clap_audio_port_info_t>    - structure to fill with port information
+       Returns:
+        <bool>                       - true if the requested port exists */
     (void)plugin;
     if (index != 0) return false;
-
+    /* describe our single in/out stereo port in each direction */
     memset(info, 0, sizeof(*info));
     info->id = 0;
     snprintf(info->name, sizeof(info->name), "%s", is_input ? "In" : "Out");
@@ -167,32 +207,47 @@ static bool audio_ports_get(const clap_plugin_t *plugin, uint32_t index,
     return true;
 }
 
+/* Interface used by the host to enumerate the plug-in's audio ports. */
 static const clap_plugin_audio_ports_t s_audio_ports = {
     .count = audio_ports_count,
     .get   = audio_ports_get
 };
 
-/* ========================================================================
- * Parameters — none (auto-scale only)
- * ======================================================================== */
-
-static uint32_t params_count(const clap_plugin_t *plugin)
-{
+static uint32_t params_count(const clap_plugin_t *plugin) {
+    /* Function that returns the number of parameters exposed by the plug-in.
+       Inputs:
+        <*clap_plugin_t> - plug-in instance
+       Returns:
+        <uint32_t> - total number of plug-in parameters */
     (void)plugin;
     return 0;
 }
 
 static bool params_info(const clap_plugin_t *plugin, uint32_t index,
-                        clap_param_info_t *info)
-{
+                                                clap_param_info_t *info) {
+    /* Function that describes one of the plug-in's parameters.
+       Inputs:
+        <*clap_plugin_t>         - plug-in instance
+        <uint32_t>               - requested parameter index
+        <*clap_param_info_t>     - structure to fill with parameter
+                                                            information
+       Returns:
+        <bool> - true if the requested parameter exists */
     (void)plugin;
     (void)index;
     (void)info;
     return false;
 }
 
-static bool params_get_value(const clap_plugin_t *plugin, clap_id id, double *out)
-{
+static bool params_get_value(const clap_plugin_t *plugin,
+                                        clap_id id, double *out) {
+    /* Function that returns the current value of a plug-in parameter.
+       Inputs:
+        <*clap_plugin_t> - plug-in instance
+        <clap_id>        - identifier of the requested parameter
+        <*double>        - location to receive the parameter value
+       Returns:
+        <bool> - true after the current value has been written to out */
     (void)plugin;
     (void)id;
     (void)out;
@@ -200,8 +255,16 @@ static bool params_get_value(const clap_plugin_t *plugin, clap_id id, double *ou
 }
 
 static bool params_value_to_text(const clap_plugin_t *plugin, clap_id id,
-                                 double value, char *display, uint32_t size)
-{
+                                 double value, char *display, uint32_t size) {
+    /* Function that converts a numeric parameter value into display text.
+        Inputs:
+         <*clap_plugin_t> - plug-in instance
+         <clap_id>        - identifier of the parameter
+         <double>         - numeric parameter value
+         <char *>         - output text buffer
+         <uint32_t>       - capacity of the output buffer
+        Returns:
+         <bool> - true if the value was converted successfully */
     (void)plugin;
     (void)id;
     (void)value;
@@ -211,8 +274,15 @@ static bool params_value_to_text(const clap_plugin_t *plugin, clap_id id,
 }
 
 static bool params_text_to_value(const clap_plugin_t *plugin, clap_id id,
-                                 const char *display, double *value)
-{
+                                        const char *display, double *value) {
+    /* Function that converts parameter text into a numeric value.
+       Inputs:
+        <*clap_plugin_t> - plug-in instance
+        <clap_id>        - identifier of the parameter
+        <const char *>   - text to convert
+        <*double>        - location to receive the converted value
+       Returns:
+        <bool> - true if text was provided and converted */
     (void)plugin;
     (void)id;
     (void)display;
@@ -222,13 +292,18 @@ static bool params_text_to_value(const clap_plugin_t *plugin, clap_id id,
 
 static void params_flush(const clap_plugin_t *plugin,
                          const clap_input_events_t *in,
-                         const clap_output_events_t *out)
-{
+                         const clap_output_events_t *out) {
+    /* Function that flushes parameter changes and regenerates the pattern.
+        Inputs:
+         <*clap_plugin_t>          - plug-in instance
+         <*clap_input_events_t>    - host input event list
+         <*clap_output_events_t>   - host output event list */
     (void)plugin;
     (void)in;
     (void)out;
 }
 
+/* Interface used by the host to access plug-in parameters. */
 static const clap_plugin_params_t s_params = {
     .count         = params_count,
     .get_info      = params_info,
@@ -238,18 +313,28 @@ static const clap_plugin_params_t s_params = {
     .flush         = params_flush
 };
 
-/* ========================================================================
- * State save / load
- * ======================================================================== */
-
-static bool state_save(const clap_plugin_t *plugin, const clap_ostream_t *stream)
-{
+static bool state_save(const clap_plugin_t *plugin,
+                            const clap_ostream_t *stream) {
+    /* Function that saves the plug-in state to the host stream.
+        Inputs:
+         <*clap_plugin_t>  - plug-in instance
+         <*clap_ostream_t> - output stream supplied by the host
+        Returns:
+         <bool> - true if the complete state was written successfully */
     go_plug_t *plug = (go_plug_t *)plugin->plugin_data;
     return write_all(stream, &plug->st, sizeof(plug->st));
 }
 
-static bool state_load(const clap_plugin_t *plugin, const clap_istream_t *stream)
-{
+static bool state_load(const clap_plugin_t *plugin,
+                            const clap_istream_t *stream) {
+    /* Function that loads and validates the plug-in state
+                                            from the host stream.
+       Inputs:
+        <*clap_plugin_t>  - plug-in instance
+        <*clap_istream_t> - input stream supplied by the host
+       Returns:
+        <bool> - true if the state was read, validated, 
+                                        and applied successfully */
     go_plug_t *plug = (go_plug_t *)plugin->plugin_data;
     go_state_t tmp;
     if (!read_all(stream, &tmp, sizeof(tmp))) return false;
@@ -259,39 +344,37 @@ static bool state_load(const clap_plugin_t *plugin, const clap_istream_t *stream
     return true;
 }
 
+/* Interface used by the host to save and load plugin state. */
 static const clap_plugin_state_t s_state = {
     .save = state_save,
     .load = state_load
 };
 
-/* ========================================================================
- * process() — pass-through + analysis
- * ======================================================================== */
-
 static clap_process_status go_process(const clap_plugin_t *plugin,
-                                      const clap_process_t *process)
-{
+                                      const clap_process_t *process) {
+    /* Function that processes one audio block and generates note events.
+       Inputs:
+        <*clap_plugin_t>   - plug-in instance
+        <*clap_process_t>  - current processing block
+       Returns:
+        <clap_process_status> - processing status returned to the host */
     go_plug_t *plug = (go_plug_t *)plugin->plugin_data;
     uint32_t frames = process->frames_count;
 
     if (!process->audio_inputs || !process->audio_outputs ||
         process->audio_inputs_count < 1 || process->audio_outputs_count < 1)
         return CLAP_PROCESS_CONTINUE;
-
     const float *inL = process->audio_inputs[0].data32
                            ? process->audio_inputs[0].data32[0] : NULL;
     const float *inR = process->audio_inputs[0].data32 &&
                        process->audio_inputs[0].channel_count > 1
                            ? process->audio_inputs[0].data32[1] : inL;
-
     float *outL = process->audio_outputs[0].data32
                       ? process->audio_outputs[0].data32[0] : NULL;
     float *outR = process->audio_outputs[0].data32 &&
                   process->audio_outputs[0].channel_count > 1
                       ? process->audio_outputs[0].data32[1] : outL;
-
     if (!inL || !outL) return CLAP_PROCESS_CONTINUE;
-
     /*
      * Accumulators for this block.
      *   sum_ll / sum_rr / sum_lr  → Pearson correlation
@@ -303,7 +386,6 @@ static clap_process_status go_process(const clap_plugin_t *plugin,
     float peak_l = 0.f, peak_r = 0.f;
     float energy = 0.f;
     float block_peak = 0.f;
-
     /*
      * Decimate into the scope ring so we do not thrash the buffer on
      * every sample.  Aim for roughly 64 points per process block.
