@@ -357,11 +357,14 @@ static clap_process_status go_process(const clap_plugin_t *plugin,
        Returns:
         <clap_process_status> - processing status returned to the host */
     go_plug_t *plug = (go_plug_t *)plugin->plugin_data;
+    /* get number of frames from the host */
     uint32_t frames = process->frames_count;
-
+    /* take care if for some reason host gave us no ports */
     if (!process->audio_inputs || !process->audio_outputs ||
-        process->audio_inputs_count < 1 || process->audio_outputs_count < 1)
+        process->audio_inputs_count < 1 || process->audio_outputs_count < 1) {
         return CLAP_PROCESS_CONTINUE;
+    }
+    /* otherwise grab pointers to left and right ports */
     const float *inL = process->audio_inputs[0].data32
                            ? process->audio_inputs[0].data32[0] : NULL;
     const float *inR = process->audio_inputs[0].data32 &&
@@ -372,20 +375,23 @@ static clap_process_status go_process(const clap_plugin_t *plugin,
     float *outR = process->audio_outputs[0].data32 &&
                   process->audio_outputs[0].channel_count > 1
                       ? process->audio_outputs[0].data32[1] : outL;
-    if (!inL || !outL) return CLAP_PROCESS_CONTINUE;
-
+    if (!inL || !outL) {
+        return CLAP_PROCESS_CONTINUE;
+    }
     /* Pure pass-through.  All analysis (scope, corr, bal, auto_peak)
        lives in the GUI thread.  We only feed raw (L,R) pairs. */
+    /* we do not want to flood the gui with points, so ensure we never write
+                                                        more that 64 frames */
     uint32_t step = frames > 64 ? frames / 64 : 1;
     if (step < 1) step = 1;
-
+    /* loop over incoming frames */
     for (uint32_t i = 0; i < frames; i++) {
         float L = inL[i];
         float R = inR ? inR[i] : L;
-
+        /* direct pass through to the output */
         outL[i] = L;
         if (outR) outR[i] = R;
-
+        /* on every step, we sample our signal for the gui to draw */
         if ((i % step) == 0) {
             go_point_t *pt = &plug->scope[plug->scope_write];
             pt->L = L;
@@ -395,7 +401,6 @@ static clap_process_status go_process(const clap_plugin_t *plugin,
                 plug->scope_count++;
         }
     }
-
     return CLAP_PROCESS_CONTINUE;
 }
 
