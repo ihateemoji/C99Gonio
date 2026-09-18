@@ -23,7 +23,7 @@ make install
 
 Then rescan plugins in any CLAP host (Bitwig, Reaper, Ardour, Carla, …).
 
-PS: If you are like me and forget --recurse-submodules 9/10 times, you can just cd into the cloned directory and
+PS: If you are like me and forget `--recurse-submodules` 9/10 times, you can just cd into the cloned directory and
 ```bash
 git submodule update --init --recursive
 ```
