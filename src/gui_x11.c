@@ -27,7 +27,6 @@
  *   [ fixed bottom band: CORR bar, BAL bar, version hint ]
  */
 
-#define _GNU_SOURCE
 #include "goniometer.h"
 
 static unsigned long go_col(int r, int g, int b) {
