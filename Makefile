@@ -6,8 +6,11 @@
 
 CC      ?= gcc
 CFLAGS  ?= -O3 -fPIC -Wall -Wextra -std=c99
-CFLAGS  += -Ithird_party/clap/include -I/usr/local/include
+CFLAGS  += -Ithird_party/clap/include
 LDFLAGS ?= -shared -Wl,--version-script=export.map -lm -lX11
+
+CFLAGS  += -I/usr/local/include
+LDFLAGS += -L/usr/local/lib
 
 SRC = src/goniometer.c src/gui_x11.c
 OUT = C99Gonio.clap
@@ -16,7 +19,7 @@ OUT = C99Gonio.clap
 
 all: $(OUT)
 
-$(OUT): $(SRC) src/goniometer.h
+$(OUT): $(SRC)
 	$(CC) $(CFLAGS) -o $(OUT) $(SRC) $(LDFLAGS)
 
 install: $(OUT)
