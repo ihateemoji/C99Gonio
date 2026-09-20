@@ -97,6 +97,12 @@
 #define GO_RED_R  220
 #define GO_RED_G  90
 #define GO_RED_B  90
+#define GO_SCOPE_BG_R 12
+#define GO_SCOPE_BG_G 14
+#define GO_SCOPE_BG_B 18
+#define GO_DIAG_R 32
+#define GO_DIAG_G 36
+#define GO_DIAG_B 44
 
 /* ---- persistent state (saved/restored via CLAP state extension) -------- */
 

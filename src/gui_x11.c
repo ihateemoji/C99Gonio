@@ -167,6 +167,9 @@ static void go_gui_paint(go_plug_t *plug) {
     unsigned long green  = go_col(GO_GRN_R, GO_GRN_G, GO_GRN_B);
     unsigned long yellow = go_col(GO_YEL_R, GO_YEL_G, GO_YEL_B);
     unsigned long red    = go_col(GO_RED_R, GO_RED_G, GO_RED_B);
+    unsigned long scope_bg = go_col(GO_SCOPE_BG_R,
+                                GO_SCOPE_BG_G, GO_SCOPE_BG_B);
+    unsigned long diag = go_col(GO_DIAG_R, GO_DIAG_G, GO_DIAG_B);
     /* fill the background colour */
     go_fill(plug, 0, 0, W, H, bg);
     /* drop a little title (if anyone cares) */
@@ -192,7 +195,7 @@ static void go_gui_paint(go_plug_t *plug) {
     int sx = (W - scope_size) / 2;
     int sy = top + (avail_h - scope_size) / 2;
     /* draw a background for the scope */
-    go_fill(plug, sx, sy, scope_size, scope_size, go_col(12, 14, 18));
+    go_fill(plug, sx, sy, scope_size, scope_size, scope_bg);
     go_rect(plug, sx, sy, scope_size, scope_size, axis);
     /* work out the coordinates of the centre of the scope */ 
     int cx = sx + scope_size / 2;
@@ -204,9 +207,9 @@ static void go_gui_paint(go_plug_t *plug) {
     go_line(plug, sx + 2, cy, sx + scope_size - 2, cy, grid);
     /* Diagonals mark pure-Left and pure-Right */
     go_line(plug, sx + 4, sy + 4, sx + scope_size - 4,
-                            sy + scope_size - 4, go_col(32, 36, 44));
+                                           sy + scope_size - 4, diag);
     go_line(plug, sx + 4, sy + scope_size - 4, sx + scope_size - 4,
-                                             sy + 4, go_col(32, 36, 44));
+                                                        sy + 4, diag);
     /* constants for smoothing and Mid/Side projection */
     const float inv_sqrt2 = GO_INV_SQRT2;
     const float smooth = GO_SMOOTH;
@@ -318,7 +321,7 @@ static void go_gui_paint(go_plug_t *plug) {
     }
     /* draw the bar */
     int my = band_y + 8;
-    go_fill(plug, bx, my, bar_w, bar_h, go_col(28, 30, 36));
+    go_fill(plug, bx, my, bar_w, bar_h, bg);
     int cw = (int)(c * (float)mid);
     unsigned long cc = (c >= 0.f) ? green : red;
     if (cw > 0)
@@ -340,7 +343,7 @@ static void go_gui_paint(go_plug_t *plug) {
     }
     /* draw the bar */
     int by = my + 32;
-    go_fill(plug, bx, by, bar_w, bar_h, go_col(28, 30, 36));
+    go_fill(plug, bx, by, bar_w, bar_h, bg);
     int bw = (int)(b * (float)mid);
     if (bw > 0)
         go_fill(plug, bx + mid, by, bw, bar_h, yellow);
@@ -424,9 +427,10 @@ static bool go_gui_create(const clap_plugin_t *plugin,
     plug->gui_h = GO_GUI_H;
     plug->back = None;
     plug->back_w = plug->back_h = 0;
+    unsigned long bg = go_col(GO_BG_R, GO_BG_G, GO_BG_B);
     plug->win = XCreateSimpleWindow(plug->dpy, root, 0, 0,
                                 (unsigned)plug->gui_w, (unsigned)plug->gui_h,
-                                   0, go_col(18, 20, 24), go_col(18, 20, 24));
+                                                                   0, bg, bg);
     /* Ask the X server to keep a backing store when the window is mapped. */
     {
         XSetWindowAttributes wa;
