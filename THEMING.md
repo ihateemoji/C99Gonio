@@ -109,6 +109,44 @@ To implement a particualr theme from this list, simply replace `#define` constan
 #define GO_RED_B  106
 ```
 
+### Vintage Green
+
+```C
+#define GO_BG_R   16
+#define GO_BG_G   20
+#define GO_BG_B   16
+#define GO_SCOPE_BG_R 10
+#define GO_SCOPE_BG_G 14
+#define GO_SCOPE_BG_B 10
+#define GO_BAR_BG_R 24
+#define GO_BAR_BG_G 30
+#define GO_BAR_BG_B 24
+#define GO_FG_R   200
+#define GO_FG_G   230
+#define GO_FG_B   180
+#define GO_GRID_R 40
+#define GO_GRID_G 55
+#define GO_GRID_B 40
+#define GO_AXIS_R 70
+#define GO_AXIS_G 90
+#define GO_AXIS_B 70
+#define GO_DIAG_R 30
+#define GO_DIAG_G 40
+#define GO_DIAG_B 30
+#define GO_CYA_R  120
+#define GO_CYA_G  230
+#define GO_CYA_B  160
+#define GO_GRN_R  100
+#define GO_GRN_G  200
+#define GO_GRN_B  110
+#define GO_YEL_R  220
+#define GO_YEL_G  200
+#define GO_YEL_B  80
+#define GO_RED_R  220
+#define GO_RED_G  90
+#define GO_RED_B  70
+```
+
 ## How to change the theme
 
 1. Edit the `#define`s in `src/goniometer.h`.
