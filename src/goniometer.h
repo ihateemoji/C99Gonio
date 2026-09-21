@@ -53,8 +53,8 @@
 #define GO_DISP_LEN     256          /* smoothed Mid/Side points on screen */
 
 #define GO_METER_H      90           /* fixed bottom band for CORR / BAL   */
-#define GO_GUI_W        480          /* default window width               */
-#define GO_GUI_H        560          /* default window height (scope+meters)*/
+#define GO_GUI_W        320          /* default window width               */
+#define GO_GUI_H        420          /* default window height (scope+meters)*/
 
 /* ---- GUI drawing constants -------------------------------------------- */
 
@@ -76,12 +76,6 @@
 #define GO_BG_R   18
 #define GO_BG_G   20
 #define GO_BG_B   24
-#define GO_GRID_R 40
-#define GO_GRID_G 44
-#define GO_GRID_B 52
-#define GO_AXIS_R 70
-#define GO_AXIS_G 78
-#define GO_AXIS_B 92
 #define GO_FG_R   230
 #define GO_FG_G   234
 #define GO_FG_B   240
@@ -97,12 +91,21 @@
 #define GO_RED_R  220
 #define GO_RED_G  90
 #define GO_RED_B  90
-#define GO_SCOPE_BG_R 12
-#define GO_SCOPE_BG_G 14
-#define GO_SCOPE_BG_B 18
 #define GO_DIAG_R 32
 #define GO_DIAG_G 36
 #define GO_DIAG_B 44
+#define GO_GRID_R 40
+#define GO_GRID_G 44
+#define GO_GRID_B 52
+#define GO_AXIS_R 70
+#define GO_AXIS_G 78
+#define GO_AXIS_B 92
+#define GO_SCOPE_BG_R 12
+#define GO_SCOPE_BG_G 14
+#define GO_SCOPE_BG_B 18
+#define GO_BAR_BG_R 28
+#define GO_BAR_BG_G 30
+#define GO_BAR_BG_B 36
 
 /* ---- persistent state (saved/restored via CLAP state extension) -------- */
 

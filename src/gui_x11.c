@@ -160,16 +160,17 @@ static void go_gui_paint(go_plug_t *plug) {
     int H = plug->gui_h;
     /* define the list of colours */
     unsigned long bg     = go_col(GO_BG_R, GO_BG_G, GO_BG_B);
-    unsigned long grid   = go_col(GO_GRID_R, GO_GRID_G, GO_GRID_B);
-    unsigned long axis   = go_col(GO_AXIS_R, GO_AXIS_G, GO_AXIS_B);
     unsigned long fg     = go_col(GO_FG_R, GO_FG_G, GO_FG_B);
     unsigned long cyan   = go_col(GO_CYA_R, GO_CYA_G, GO_CYA_B);
     unsigned long green  = go_col(GO_GRN_R, GO_GRN_G, GO_GRN_B);
     unsigned long yellow = go_col(GO_YEL_R, GO_YEL_G, GO_YEL_B);
     unsigned long red    = go_col(GO_RED_R, GO_RED_G, GO_RED_B);
+    unsigned long grid   = go_col(GO_GRID_R, GO_GRID_G, GO_GRID_B);
+    unsigned long axis   = go_col(GO_AXIS_R, GO_AXIS_G, GO_AXIS_B);
+    unsigned long diag = go_col(GO_DIAG_R, GO_DIAG_G, GO_DIAG_B);
     unsigned long scope_bg = go_col(GO_SCOPE_BG_R,
                                 GO_SCOPE_BG_G, GO_SCOPE_BG_B);
-    unsigned long diag = go_col(GO_DIAG_R, GO_DIAG_G, GO_DIAG_B);
+    unsigned long bar_bg = go_col(GO_BAR_BG_R, GO_BAR_BG_G, GO_BAR_BG_B);
     /* fill the background colour */
     go_fill(plug, 0, 0, W, H, bg);
     /* drop a little title (if anyone cares) */
@@ -321,7 +322,7 @@ static void go_gui_paint(go_plug_t *plug) {
     }
     /* draw the bar */
     int my = band_y + 8;
-    go_fill(plug, bx, my, bar_w, bar_h, bg);
+    go_fill(plug, bx, my, bar_w, bar_h, bar_bg);
     int cw = (int)(c * (float)mid);
     unsigned long cc = (c >= 0.f) ? green : red;
     if (cw > 0)
@@ -343,7 +344,7 @@ static void go_gui_paint(go_plug_t *plug) {
     }
     /* draw the bar */
     int by = my + 32;
-    go_fill(plug, bx, by, bar_w, bar_h, bg);
+    go_fill(plug, bx, by, bar_w, bar_h, bar_bg);
     int bw = (int)(b * (float)mid);
     if (bw > 0)
         go_fill(plug, bx + mid, by, bw, bar_h, yellow);
