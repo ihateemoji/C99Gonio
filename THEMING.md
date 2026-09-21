@@ -71,6 +71,8 @@ To implement a particualr theme from this list, simply replace `#define` constan
 
 ### Nord
 
+![screenshot](imgs/C99Gonio_Nord.jpeg?raw=true)
+
 ```C
 #define GO_BG_R   30
 #define GO_BG_G   34
