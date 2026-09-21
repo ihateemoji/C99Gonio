@@ -27,7 +27,11 @@ the helper `go_col()` in `gui_x11.c`.
 
 ## Themes
 
+To implement a particualr theme from this list, simply replace `#define` constants inside `src/goniometer.h` with values from your preferred them. Other user-contributed themes are always welcome!
+
 ### Amber CRT
+
+![screenshot](imgs/C99Gonio_AmberCRT.jpeg?raw=true)
 
 ```C
 #define GO_BG_R   12
@@ -65,6 +69,43 @@ the helper `go_col()` in `gui_x11.c`.
 #define GO_RED_B  40
 ```
 
+### Nord
+
+```C
+#define GO_BG_R   30
+#define GO_BG_G   34
+#define GO_BG_B   42
+#define GO_SCOPE_BG_R 22
+#define GO_SCOPE_BG_G 26
+#define GO_SCOPE_BG_B 34
+#define GO_BAR_BG_R 40
+#define GO_BAR_BG_G 46
+#define GO_BAR_BG_B 56
+#define GO_FG_R   216
+#define GO_FG_G   222
+#define GO_FG_B   233
+#define GO_GRID_R 60
+#define GO_GRID_G 68
+#define GO_GRID_B 80
+#define GO_AXIS_R 90
+#define GO_AXIS_G 100
+#define GO_AXIS_B 120
+#define GO_DIAG_R 50
+#define GO_DIAG_G 56
+#define GO_DIAG_B 68
+#define GO_CYA_R  136
+#define GO_CYA_G  192
+#define GO_CYA_B  208
+#define GO_GRN_R  163
+#define GO_GRN_G  190
+#define GO_GRN_B  140
+#define GO_YEL_R  235
+#define GO_YEL_G  203
+#define GO_YEL_B  139
+#define GO_RED_R  191
+#define GO_RED_G  97
+#define GO_RED_B  106
+```
 
 ## How to change the theme
 
@@ -73,3 +114,5 @@ the helper `go_col()` in `gui_x11.c`.
 
    ```bash
    make clean && make
+   ```
+3. Replace your old `C99Gonio.clap` binary with the one you just built and rescan the plug-ins in your DAW.
