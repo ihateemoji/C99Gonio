@@ -27,7 +27,7 @@ the helper `go_col()` in `gui_x11.c`.
 
 ## Themes
 
-To implement a particualr theme from this list, simply replace `#define` constants inside `src/goniometer.h` with values from your preferred them. Other user-contributed themes are always welcome!
+To implement a particular theme from this list, simply replace `#define` constants inside `src/goniometer.h` with values from your preferred theme. Other user-contributed themes are always welcome!
 
 ### Amber CRT
 
@@ -110,6 +110,8 @@ To implement a particualr theme from this list, simply replace `#define` constan
 ```
 
 ### Vintage Green
+
+![screenshot](imgs/C99Gonio_Vintage%20Green.jpeg?raw=true)
 
 ```C
 #define GO_BG_R   16
