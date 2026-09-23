@@ -25,7 +25,7 @@ the helper `go_col()` in `gui_x11.c`.
 
 ## Themes
 
-Ready-made themes live in the `themes/` directory as unified diff patches
+Themes live in the `themes/` directory as unified diff patches
 against the default colour block in `src/goniometer.h`. Apply one before
 building:
 
