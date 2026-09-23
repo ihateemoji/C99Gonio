@@ -54,12 +54,12 @@ static void go_ensure_back(go_plug_t *p) {
     /* Routine that ensures that the offscreen pixmap is created.
         Drawing directly on a window at 60 fps creates nauseating flicker
         Inputs:
-            <*go_plug_t> - pointer to the instance of the plug in */
+            <*go_plug_t> - pointer to the instance of the plug-in */
     /* if we have no X display or no window for some reason then move on */
     if (!p->dpy || !p->win) 
         return;
     /* if we already have the pixmap and it matches the dimensions of the 
-                                               gui there is nothing to do */
+                                               gui, there is nothing to do */
     if (p->back != None && p->back_w == p->gui_w && p->back_h == p->gui_h)
         return;
     /* catch the size change */
@@ -91,7 +91,7 @@ static void go_fill(go_plug_t *p, int x, int y, int w, int h,
             <int>        - y coordinate of the top-left corner
             <int>        - width
             <int>        - height
-            <long>       - rgb color packed into unsigned long by go_col */
+            <long>       - rgb colour packed into unsigned long by go_col */
     /* set the colour for the next draw call */
     XSetForeground(p->dpy, p->gc, c);
     /* draw the rectangle */
@@ -108,7 +108,7 @@ static void go_rect(go_plug_t *p, int x, int y, int w, int h,
             <int>        - y coordinate of the top-left corner
             <int>        - width
             <int>        - height
-            <long>       - rgb color packed into unsigned long by go_col */
+            <long>       - rgb colour packed into unsigned long by go_col */
     /* set the colour for the next draw call */
     XSetForeground(p->dpy, p->gc, c);
     /* draw the rectangle */
@@ -125,7 +125,7 @@ static void go_line(go_plug_t *p, int x0, int y0, int x1, int y1,
             <int>        - x coordinate of the end point
             <int>        - y coordinate of the end point 
             <int>        - height
-            <long>       - rgb color packed into unsigned long by go_col */
+            <long>       - rgb colour packed into unsigned long by go_col */
     /* set the colour for the next draw call */
     XSetForeground(p->dpy, p->gc, c);
     /* draw the line */
@@ -139,8 +139,8 @@ static void go_text(go_plug_t *p, int x, int y, const char *s,
          <*go_plug_t> - pointer to the instance of the plug in
          <int>        - x coordinate of the start of the string
          <int>        - y coordinate of the start of the string
-         <*char>      - null terminated string to draw
-         <long>       - rgb color packed into unsigned long by go_col */
+         <*char>      - null-terminated string to draw
+         <long>       - rgb colour packed into unsigned long by go_col */
     /* set the colour for the next draw call */
     XSetForeground(p->dpy, p->gc, c);
     /* print out the string */
@@ -151,7 +151,7 @@ static void go_gui_paint(go_plug_t *plug) {
     /* Procedure that draws one full frame of the UI.
         Inputs:
           <*go_plug_t> - pointer to the instance of the plug in */
-    /* if no X or window there is nothing to do */
+    /* if no X or window, there is nothing to do */
     if (!plug->dpy || !plug->win) return;
     /* ensure we got an off-screen pixmap to alleviate the flickering */
     go_ensure_back(plug);
@@ -214,7 +214,7 @@ static void go_gui_paint(go_plug_t *plug) {
     /* constants for smoothing and Mid/Side projection */
     const float inv_sqrt2 = GO_INV_SQRT2;
     const float smooth = GO_SMOOTH;
-    /* get the number of life samples loaded by the plug in */
+    /* get the number of life samples loaded by the plug-in */
     uint32_t nsrc = plug->scope_count;
     /* ensure we do not load more samples than provided upper limit */
     if (nsrc > GO_SCOPE_LEN) nsrc = GO_SCOPE_LEN;
@@ -225,7 +225,7 @@ static void go_gui_paint(go_plug_t *plug) {
                 (plug->scope_write + GO_SCOPE_LEN - nsrc) % GO_SCOPE_LEN;
         /* set the number of display points to our predefined value */
         uint32_t nd = GO_DISP_LEN;
-        /* account for the case if we have less samples available */
+        /* account for the case if we have fewer samples available */
         if (nd > nsrc) nd = nsrc;
         /* loop over the samples in the system */
         float frame_peak = 0.f;
@@ -289,7 +289,7 @@ static void go_gui_paint(go_plug_t *plug) {
             /* get the coordinates of each pixel */
             int px = cx + (int)(sxv * rad);
             int py = cy - (int)(syv * rad);
-            /* if the previous point exists we draw a line */
+            /* if the previous point exists, we draw a line */
             if (prev_x >= 0)
                 go_line(plug, prev_x, prev_y, px, py, cyan);
             /* store the coordinates of current pixel for future use */
@@ -297,7 +297,7 @@ static void go_gui_paint(go_plug_t *plug) {
             prev_y = py;
         }
     }
-    /* work out the top edge of the metre are */
+    /* work out the top edge of the metre area */
     int band_y = H - meter_h;
     /* offset by a margin */
     int bx = margin;
