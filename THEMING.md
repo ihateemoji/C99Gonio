@@ -3,8 +3,6 @@
 All colours used by the X11 GUI live in `src/goniometer.h` as simple
 `#define`s.  Change the RGB values, recompile, and you have a new theme.
 
-There is no runtime theme switching — this is intentional for a minimal
-C99 plugin.
 
 ## Colour constants
 
@@ -28,7 +26,7 @@ the helper `go_col()` in `gui_x11.c`.
 ## Themes
 
 Ready-made themes live in the `themes/` directory as unified diff patches
-against the default colour block in `src/goniometer.h`.  Apply one before
+against the default colour block in `src/goniometer.h`. Apply one before
 building:
 
 ```bash
@@ -36,15 +34,14 @@ patch -p0 < themes/amber-crt.patch
 make clean && make
 ```
 
-To return to the default theme after testing:
+To return to the default theme:
 
 ```bash
 git checkout -- src/goniometer.h
 ```
 
 Other user-contributed themes are always welcome — open a PR that adds a
-new `.patch` file under `themes/` (and a screenshot under `imgs/` if you
-like).
+new `.patch` file under `themes/` (and a screenshot under `imgs/` with an appropriate change to `THEMING.md`).
 
 ### Amber CRT
 
@@ -84,6 +81,8 @@ patch -p0 < themes/vintage-green.patch
    ```bash
    make clean && make
    ```
+   
 4. Replace your old `C99Gonio.clap` binary with the one you just built and
    rescan the plug-ins in your DAW.
-5. Add a screenshot under `imgs/` and document the theme here.
+   
+6. Add a screenshot under `imgs/` and document the theme here.
