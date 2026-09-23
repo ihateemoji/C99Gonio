@@ -73,6 +73,13 @@ patch -p0 < themes/vintage-green.patch
 ```bash
 patch -p0 < themes/gruvbox-dark.patch
 ```
+### Dracula
+
+![screenshot](imgs/C99Gonio_dracula.jpeg?raw=true)
+
+```bash
+patch -p0 < themes/dracula.patch
+```
 
 ## How to create a new theme
 
