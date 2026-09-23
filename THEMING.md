@@ -86,3 +86,5 @@ patch -p0 < themes/vintage-green.patch
    rescan the plug-ins in your DAW.
    
 6. Add a screenshot under `imgs/` and document the theme here.
+
+7. Open a PR to contribute your theme to this repository.
