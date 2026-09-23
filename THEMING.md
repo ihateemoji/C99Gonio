@@ -66,6 +66,13 @@ patch -p0 < themes/nord.patch
 ```bash
 patch -p0 < themes/vintage-green.patch
 ```
+### Gruvbox Dark
+
+![screenshot](imgs/C99Gonio_gruvbox-dark.jpeg?raw=true)
+
+```bash
+patch -p0 < themes/gruvbox-dark.patch
+```
 
 ## How to create a new theme
 
