@@ -40,7 +40,6 @@ To return to the default theme after testing:
 
 ```bash
 git checkout -- src/goniometer.h
-# or:  patch -p0 -R < themes/amber-crt.patch
 ```
 
 Other user-contributed themes are always welcome — open a PR that adds a
@@ -80,7 +79,6 @@ patch -p0 < themes/vintage-green.patch
    git diff src/goniometer.h > themes/my-theme.patch
    ```
 
-   (or `diff -u` against a clean copy of the file).
 3. Rebuild to test:
 
    ```bash
