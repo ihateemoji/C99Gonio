@@ -381,7 +381,7 @@ static clap_process_status go_process(const clap_plugin_t *plugin,
         return CLAP_PROCESS_CONTINUE;
     }
     /* Pure pass-through.  We also capture a decimated stream of (L,R)
-        pairs into the scope ring and update the correlation / balance
+        pairs into the scope ring and update the correlation/balance
         meters here on the audio thread.  Display-trail smoothing and
         auto-scale live in the GUI paint path. */
     /*
@@ -395,7 +395,7 @@ static clap_process_status go_process(const clap_plugin_t *plugin,
     float peak_l = 0.f, peak_r = 0.f;
     float energy = 0.f;
     /* we do not want to flood the gui with points, so ensure we never write
-                                                        more that 64 frames */
+                                                        more than 64 frames */
     uint32_t step = frames > 64 ? frames / 64 : 1;
     if (step < 1) step = 1;
     /* loop over incoming frames */
@@ -495,8 +495,8 @@ static const clap_plugin_t *go_create(const clap_host_t *host) {
        Inputs:
          <*clap_host_t> - host that owns and controls the plug-in
        Returns:
-         <*clap_plugin_t> - initialized plug-in instance, or NULL on failure
-    The instance is allocated, initialized with default state and processing
+         <*clap_plugin_t> - initialised plug-in instance, or NULL on failure
+    The instance is allocated, initialised with default state and processing
     values, and populated with pointers to the plug-in lifecycle callbacks. */
     go_plug_t *plug = (go_plug_t *)calloc(1, sizeof(go_plug_t));
     if (!plug) return NULL;
@@ -523,7 +523,7 @@ static const clap_plugin_t *go_create(const clap_host_t *host) {
 }
 
 static uint32_t factory_count(const clap_plugin_factory_t *f) {
-    /* Function that returns the number of plug-ins provided by this factory.
+    /* Function that returns the number of plug-ins this factory provides.
         Inputs:
          <*clap_plugin_factory_t> - plug-in factory
         Returns:
@@ -580,8 +580,8 @@ static bool entry_init(const char *plugin_path) {
         Inputs:
           <*char> - path to the plug-in binary
         Returns:
-          <bool> - true when initialization succeeds
-        No global initialization is currently required, so this function
+          <bool> - true when initialisation succeeds
+        No global initialisation is currently required, so this function
         always reports success. */
     (void)plugin_path;
     return true;
