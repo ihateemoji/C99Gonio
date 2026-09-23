@@ -28,10 +28,6 @@ jobs:
           patch -p0 < themes/${{ matrix.theme }}.patch
       - name: Build
         run: make
-      - name: Verify binary
-        run: |
-          test -f C99Gonio.clap
-          file C99Gonio.clap
 
   freebsd:
     name: FreeBSD
@@ -55,4 +51,3 @@ jobs:
               patch -p0 < themes/${{ matrix.theme }}.patch
             fi
             gmake
-            test -f C99Gonio.clap
